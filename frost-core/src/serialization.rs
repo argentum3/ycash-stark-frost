@@ -92,8 +92,16 @@ where
     }
 }
 
+/// Helper struct to serialize a group Element.
+///
+/// This wraps an Element for serialization, handling both the identity check
+/// and the encoding/decoding of the element. Used internally for adaptor
+/// signature support where the adaptor statement needs to be serialized.
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub(crate) struct SerializableElement<C: Ciphersuite>(pub(crate) Element<C>);
+pub struct SerializableElement<C: Ciphersuite>(
+    /// The wrapped element.
+    pub Element<C>,
+);
 
 impl<C> SerializableElement<C>
 where
@@ -489,3 +497,4 @@ where
         )
     }
 }
+

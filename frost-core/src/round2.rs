@@ -163,8 +163,11 @@ pub fn sign<C: Ciphersuite>(
     let lambda_i = frost::derive_interpolating_value(key_package.identifier(), &signing_package)?;
 
     // Compute the per-message challenge.
+    // For adaptor signatures, use R' = R + Y as the commitment point.
+    // For standard signatures, use R directly.
+    let challenge_point = signing_package.challenge_commitment(&group_commitment.0);
     let challenge = <C>::challenge(
-        &group_commitment.0,
+        &challenge_point,
         &key_package.verifying_key,
         signing_package.message(),
     )?;
