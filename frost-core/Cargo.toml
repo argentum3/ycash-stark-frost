@@ -66,6 +66,8 @@ serde = ["dep:serde", "dep:serdect"]
 serialization = ["serde", "dep:postcard"]
 # Exposes ciphersuite-generic tests for other crates to use
 test-impl = ["dep:proptest", "dep:serde_json", "dep:criterion", "dep:tokio", "dep:debugless-unwrap"]
+# Cheater detection is now always enabled. This feature is kept for backward compatibility.
+cheater-detection = []
 
 [lib]
 bench = false

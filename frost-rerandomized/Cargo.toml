@@ -37,3 +37,5 @@ serde = ["frost-core/serde"]
 test-impl = ["frost-core/test-impl", "serialization"]
 ## Enable a default serialization format. Enables `serde`.
 serialization = ["serde", "frost-core/serialization"]
+## Enable cheater detection in signature aggregation
+cheater-detection = ["frost-core/cheater-detection"]
