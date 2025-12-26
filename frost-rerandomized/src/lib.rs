@@ -157,6 +157,32 @@ where
     )
 }
 
+/// Aggregate signature shares into a signature without verification.
+///
+/// This is the adaptor signature variant of [`aggregate`]. Use this when the
+/// signature is an adaptor pre-signature that won't verify with standard
+/// Schnorr verification. The pre-signature will only verify after adaptation.
+///
+/// **CAUTION**: This function does NOT verify the final signature.
+///
+/// See [`frost::aggregate_for_adaptor`] for more details.
+pub fn aggregate_for_adaptor<C>(
+    signing_package: &frost::SigningPackage<C>,
+    signature_shares: &BTreeMap<frost::Identifier<C>, frost::round2::SignatureShare<C>>,
+    pubkeys: &frost::keys::PublicKeyPackage<C>,
+    randomized_params: &RandomizedParams<C>,
+) -> Result<frost_core::Signature<C>, Error<C>>
+where
+    C: Ciphersuite,
+{
+    let randomized_public_key_package = pubkeys.randomize(randomized_params)?;
+    frost::aggregate_for_adaptor(
+        signing_package,
+        signature_shares,
+        &randomized_public_key_package,
+    )
+}
+
 /// A randomizer. A random scalar which is used to randomize the key.
 #[derive(Copy, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

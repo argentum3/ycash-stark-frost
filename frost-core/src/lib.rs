@@ -756,6 +756,68 @@ where
     Ok(signature)
 }
 
+/// Aggregate signature shares without final signature verification.
+///
+/// This is useful for adaptor signatures where the aggregated signature
+/// is a pre-signature that won't verify with standard Schnorr verification.
+/// The pre-signature will only verify after adaptation with the witness.
+///
+/// **CAUTION**: This function does NOT verify the final signature. Use only
+/// when you know the aggregated signature is intentionally invalid (e.g., adaptor signatures).
+/// Invalid shares will result in an invalid signature.
+pub fn aggregate_for_adaptor<C>(
+    signing_package: &SigningPackage<C>,
+    signature_shares: &BTreeMap<Identifier<C>, round2::SignatureShare<C>>,
+    pubkeys: &keys::PublicKeyPackage<C>,
+) -> Result<Signature<C>, Error<C>>
+where
+    C: Ciphersuite,
+{
+    // Check if signing_package.signing_commitments and signature_shares have
+    // the same set of identifiers, and if they are all in pubkeys.verifying_shares.
+    if signing_package.signing_commitments().len() != signature_shares.len() {
+        return Err(Error::UnknownIdentifier);
+    }
+
+    if !signing_package
+        .signing_commitments()
+        .keys()
+        .all(|id| signature_shares.contains_key(id))
+    {
+        return Err(Error::UnknownIdentifier);
+    }
+
+    let (signing_package, signature_shares, _pubkeys) =
+        <C>::pre_aggregate(signing_package, signature_shares, pubkeys)?;
+
+    // Encodes the signing commitment list produced in round one as part of generating [`BindingFactor`], the
+    // binding factor.
+    let binding_factor_list: BindingFactorList<C> =
+        compute_binding_factor_list(&signing_package, &pubkeys.verifying_key, &[])?;
+
+    // Compute the group commitment from signing commitments produced in round one.
+    let signing_package = <C>::pre_commitment_aggregate(&signing_package, &binding_factor_list)?;
+    let group_commitment = compute_group_commitment(&signing_package, &binding_factor_list)?;
+
+    // The aggregation of the signature shares by summing them up, resulting in
+    // a plain Schnorr signature.
+    let mut z = <<C::Group as Group>::Field>::zero();
+
+    for signature_share in signature_shares.values() {
+        z = z + signature_share.to_scalar();
+    }
+
+    let signature = Signature {
+        R: group_commitment.0,
+        z,
+    };
+
+    // NOTE: We intentionally skip verification here because this is for adaptor signatures
+    // where the pre-signature is not yet a valid signature.
+
+    Ok(signature)
+}
+
 /// Optional cheater detection feature
 /// Each share is verified to find the cheater
 fn detect_cheater<C: Ciphersuite>(
