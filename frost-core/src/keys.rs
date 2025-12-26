@@ -746,8 +746,20 @@ impl<C> PublicKeyPackage<C>
 where
     C: Ciphersuite,
 {
-    /// Create a new [`PublicKeyPackage`] instance.
+    /// Create a new [`PublicKeyPackage`] instance without specifying min_signers.
+    ///
+    /// This is a backward-compatible constructor for code that doesn't need
+    /// to specify the minimum number of signers. Prefer using [`Self::new_with_threshold`]
+    /// when the threshold is known.
     pub fn new(
+        verifying_shares: BTreeMap<Identifier<C>, VerifyingShare<C>>,
+        verifying_key: VerifyingKey<C>,
+    ) -> Self {
+        Self::new_internal(verifying_shares, verifying_key, None)
+    }
+
+    /// Create a new [`PublicKeyPackage`] instance with the minimum number of signers.
+    pub fn new_with_threshold(
         verifying_shares: BTreeMap<Identifier<C>, VerifyingShare<C>>,
         verifying_key: VerifyingKey<C>,
         min_signers: u16,
@@ -785,7 +797,7 @@ where
             .iter()
             .map(|id| (*id, VerifyingShare::from_commitment(*id, commitment)))
             .collect();
-        Ok(PublicKeyPackage::new(
+        Ok(PublicKeyPackage::new_with_threshold(
             verifying_keys,
             VerifyingKey::from_commitment(commitment)?,
             commitment.min_signers(),

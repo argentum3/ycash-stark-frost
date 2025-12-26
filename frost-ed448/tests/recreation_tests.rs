@@ -119,7 +119,7 @@ fn check_public_key_package_new_recreation() {
     let min_signers = public_key_package.min_signers().unwrap();
 
     let new_public_key_package =
-        PublicKeyPackage::new(verifying_shares.clone(), *verifying_key, min_signers);
+        PublicKeyPackage::new_with_threshold(verifying_shares.clone(), *verifying_key, min_signers);
 
     assert!(public_key_package == new_public_key_package);
 }

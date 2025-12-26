@@ -294,7 +294,7 @@ pub fn check_sign_with_test_vectors<C: Ciphersuite>(json_vectors: &Value) {
         .collect();
 
     let pubkey_package =
-        frost::keys::PublicKeyPackage::new(verifying_shares, verifying_key, min_signers as u16);
+        frost::keys::PublicKeyPackage::new_with_threshold(verifying_shares, verifying_key, min_signers as u16);
 
     ////////////////////////////////////////////////////////////////////////////
     // Aggregation:  collects the signing shares from all participants,
